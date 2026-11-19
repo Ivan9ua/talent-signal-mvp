@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>招聘渠道人才质量报告</title>
+  <style>
+    body { margin: 0; background: #fff; color: #172b3a; font: 16px/1.6 "PingFang SC", system-ui, sans-serif; }
+    main { max-width: 1120px; margin: 2.5rem auto; padding: 0 1rem; }
+    h1, h2 { line-height: 1.25; }
+    h2 { margin-top: 2rem; }
+    .table-wrap { overflow-x: auto; }
+    .table-wrap:focus-visible { outline: 2px solid #08677a; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { padding: .65rem .8rem; text-align: right; border-bottom: 1px solid #dbe5ec; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { background: #ecf4f7; }
+    .muted { color: #465d6b; }
+    .error { color: #8a241b; }
+  </style>
+</head>
+<body>
+{% macro rate(value) -%}
+  {{ '—' if value is none else '%.1f%%'|format(value * 100) }}
+{%- endmacro %}
+{% macro score(value) -%}
+  {{ '—' if value is none else '%.2f'|format(value) }}
+{%- endmacro %}
+<main>
+  <h1>招聘渠道人才质量报告</h1>
+  <p class="muted">统计截至 {{ as_of }} · 数据快照截至 {{ snapshot_cutoff }} · 数据来源为合成 CSV 快照</p>
+  {% if quality.issues %}
+  <h2 class="error">数据质量检查发现异常，指标暂停展示</h2>
+  <div class="table-wrap" tabindex="0" role="region" aria-label="数据质量异常">
+    <table>
+      <thead><tr><th scope="col">数据表</th><th scope="col">字段</th><th scope="col">问题</th><th scope="col">影响行数</th></tr></thead>
+      <tbody>
+      {% for issue in quality.issues %}
+        <tr><td>{{ issue.table }}</td><td>{{ issue.field }}</td><td>{{ issue.code }}</td><td>{{ issue.count }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <h2 id="channels">渠道汇总</h2>
+  <p>30 天留存以截至统计日已入职满 30 天的员工为分母，入职当天至第 30 天离职计为未留存。</p>
+  <p>测评和 180 天绩效的均分以实际录入人数为样本量，满分 100 分。— 表示暂无适用样本。</p>
+  {% if metrics.channels %}
+  <div class="table-wrap" tabindex="0" role="region" aria-labelledby="channels">
+    <table>
+      <thead><tr><th scope="col">渠道</th><th scope="col">候选人</th><th scope="col">入职</th><th scope="col">入职率</th><th scope="col">满 30 天</th><th scope="col">留存</th><th scope="col">30 天留存率</th><th scope="col">测评人数／均分</th><th scope="col">180 天绩效人数／均分</th></tr></thead>
+      <tbody>
+      {% for row in metrics.channels %}
+        <tr><th scope="row">{{ row.channel }}</th><td>{{ row.candidates }}</td><td>{{ row.hires }}</td><td>{{ rate(row.hire_rate) }}</td><td>{{ row.eligible_30d }}</td><td>{{ row.retained_30d }}</td><td>{{ rate(row.retention_rate_30d) }}</td><td>{{ row.assessment_count }}／{{ score(row.assessment_mean) }}</td><td>{{ row.performance_180d_count }}／{{ score(row.performance_180d_mean) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>截至统计日暂无候选人。</p>
+  {% endif %}
+  <h2 id="cohorts">月度入职批次</h2>
+  <p>按入职月、管理单元、渠道统计。月末满 30 天后展示整批留存率，观察中的批次展示已知离职人数。</p>
+  {% if metrics.monthly_cohorts %}
+  <div class="table-wrap" tabindex="0" role="region" aria-labelledby="cohorts">
+    <table>
+      <thead><tr><th scope="col">入职月</th><th scope="col">管理单元</th><th scope="col">渠道</th><th scope="col">观察状态</th><th scope="col">入职</th><th scope="col">已观察到的 30 天内离职</th><th scope="col">30 天留存率</th></tr></thead>
+      <tbody>
+      {% for row in metrics.monthly_cohorts %}
+        <tr><td>{{ row.hire_month }}</td><td>{{ row.unit }}</td><td>{{ row.channel }}</td><td>{{ '已成熟' if row.status == 'mature' else '观察中' }}</td><td>{{ row.hires }}</td><td>{{ row.exits_observed_30d }}</td><td>{{ rate(row.retention_rate_30d) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>截至统计日暂无入职批次。</p>
+  {% endif %}
+  <p class="muted">数据质量检查通过。</p>
+  {% endif %}
+</main>
+</body>
+</html>
