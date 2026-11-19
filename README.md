@@ -1,6 +1,6 @@
 # Talent Signal MVP
 
-用合成数据观察招聘渠道的入职转化、30 天留存、早期测评和实际 180 天绩效记录。项目使用 Python 3.12、FastAPI、SQLite 和 Pandas，测试由 Pytest 与 GitHub Actions 运行。
+本项目的目标是打通候选人、入职、早期测评和绩效数据，用合成数据分析招聘渠道的入职转化和 30 天留存，提供数据质量检查、API 和 HTML 报告。项目使用 Python 3.12、FastAPI、SQLite 和 Pandas，通过 Pytest 和 GitHub Actions 运行自动化测试。180 天绩效仅汇总已录入的样本和成绩。
 
 ## 本地运行
 
